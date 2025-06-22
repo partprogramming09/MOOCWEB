@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Ganadera</title>
+    <!-- TailwindCSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Cabecera -->
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-green-800 mb-2">Sistema de Gestión Ganadera</h1>
+            <p class="text-gray-600">Administre su ganado de manera eficiente</p>
+        </header>
+        
+        <!-- Sección Principal -->
+        <main>
+            <!-- Pantalla principal (lista de animales) -->
+            <section id="pantalla-principal" class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Registro de Animales</h2>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button id="btn-estadisticas" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                            Ver Estadísticas
+                        </button>
+                        <button id="btn-agregar" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                            Añadir Animal
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Buscador -->
+                <div class="mb-6">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <input type="text" id="buscador" placeholder="Buscar por ID o nombre..." class="border rounded px-4 py-2 flex-1">
+                        <button id="btn-buscar" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tabla de animales -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-2 px-4 border-b text-left">ID</th>
+                                <th class="py-2 px-4 border-b text-left">Raza</th>
+                                <th class="py-2 px-4 border-b text-left">Fecha Nac.</th>
+                                <th class="py-2 px-4 border-b text-left">Peso (kg)</th>
+                                <th class="py-2 px-4 border-b text-left">Prod. Lechera (L/día)</th>
+                                <th class="py-2 px-4 border-b text-left">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-animales">
+                            <!-- Los animales se cargarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Mensaje cuando no hay animales -->
+                <div id="no-animales" class="text-center py-8 text-gray-500 hidden">
+                    No hay animales registrados. ¡Agrega uno nuevo!
+                </div>
+            </section>
+            
+            <!-- Formulario para añadir/editar animal -->
+            <section id="formulario-animal" class="bg-white rounded-lg shadow p-6 mb-6 hide">
+                <h2 id="form-titulo" class="text-2xl font-bold text-gray-800 mb-6">Añadir Nuevo Animal</h2>
+                
+                <form id="form-animal" class="space-y-4">
+                    <input type="hidden" id="form-id-oculto">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="form-id" class="block text-sm font-medium text-gray-700 mb-1">Número de Identificación</label>
+                            <input type="text" id="form-id" required class="w-full border rounded px-3 py-2">
+                        </div>
+                        
+                        <div>
+                            <label for="form-raza" class="block text-sm font-medium text-gray-700 mb-1">Raza</label>
+                            <input type="text" id="form-raza" required class="w-full border rounded px-3 py-2">
+                        </div>
+                        
+                        <div>
+                            <label for="form-fecha" class="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
+                            <input type="date" id="form-fecha" required class="w-full border rounded px-3 py-2">
+                        </div>
+                        
+                        <div>
+                            <label for="form-peso" class="block text-sm font-medium text-gray-700 mb-1">Peso Actual (kg)</label>
+                            <input type="number" id="form-peso" step="0.01" min="0" required class="w-full border rounded px-3 py-2">
+                        </div>
+                        
+                        <div>
+                            <label for="form-produccion" class="block text-sm font-medium text-gray-700 mb-1">Producción Lechera (L/día)</label>
+                            <input type="number" id="form-produccion" step="0.1" min="0" required class="w-full border rounded px-3 py-2">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="btn-cancelar" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Pantalla de estadísticas -->
+            <section id="pantalla-estadisticas" class="bg-white rounded-lg shadow p-6 mb-6 hide">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Estadísticas del Ganado</h2>
+                    <button id="btn-volver-estadisticas" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+                        Volver
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-2">Total de Animales</h3>
+                        <p id="stats-total" class="text-3xl font-bold text-blue-600">0</p>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                        <h3 class="text-lg font-semibold text-green-800 mb-2">Peso Promedio</h3>
+                        <p id="stats-peso" class="text-3xl font-bold text-green-600">0 kg</p>
+                    </div>
+                    
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                        <h3 class="text-lg font-semibold text-yellow-800 mb-2">Producción Total</h3>
+                        <p id="stats-produccion" class="text-3xl font-bold text-yellow-600">0 L/día</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        // Modelo de datos
+        class GestionGanadera {
+            constructor() {
+                this.animales = JSON.parse(localStorage.getItem('animales')) || [];
+                this.cargarEventos();
+                this.mostrarPantallaPrincipal();
+                this.actualizarTabla();
+            }
+            
+            // Gestión de animales
+            obtenerAnimales() {
+                return this.animales;
+            }
+            
+            agregarAnimal(animal) {
+                // Validar que el ID no exista ya
+                if (this.animales.some(a => a.id === animal.id)) {
+                    alert('Ya existe un animal con ese número de identificación');
+                    return false;
+                }
+                
+                this.animales.push(animal);
+                this.guardarDatos();
+                return true;
+            }
+            
+            actualizarAnimal(animalActualizado) {
+                const indice = this.animales.findIndex(a => a.id === animalActualizado.id);
+                if (indice !== -1) {
+                    this.animales[indice] = animalActualizado;
+                    this.guardarDatos();
+                    return true;
+                }
+                return false;
+            }
+            
+            eliminarAnimal(id) {
+                this.animales = this.animales.filter(animal => animal.id !== id);
+                this.guardarDatos();
+            }
+            
+            buscarAnimales(termino) {
+                if (!termino) return this.animales;
+                
+                termino = termino.toLowerCase();
+                return this.animales.filter(animal => 
+                    animal.id.toLowerCase().includes(termino) || 
+                    animal.raza.toLowerCase().includes(termino)
+                );
+            }
+            
+            // Estadísticas
+            calcularEstadisticas() {
+                const total = this.animales.length;
+                
+                let sumaPeso = 0;
+                let sumaProduccion = 0;
+                
+                this.animales.forEach(animal => {
+                    sumaPeso += parseFloat(animal.peso);
+                    sumaProduccion += parseFloat(animal.produccion);
+                });
+                
+                const promedioPeso = total > 0 ? sumaPeso / total : 0;
+                
+                return {
+                    total,
+                    promedioPeso: promedioPeso.toFixed(2),
+                    produccionTotal: sumaProduccion.toFixed(1)
+                };
+            }
+            
+            // Persistencia de datos
+            guardarDatos() {
+                localStorage.setItem('animales', JSON.stringify(this.animales));
+            }
+            
+            // Gestión de la interfaz
+            cargarEventos() {
+                // Botones principales
+                document.getElementById('btn-agregar').addEventListener('click', () => this.mostrarFormulario());
+                document.getElementById('btn-estadisticas').addEventListener('click', () => this.mostrarEstadisticas());
+                document.getElementById('btn-volver-estadisticas').addEventListener('click', () => this.mostrarPantallaPrincipal());
+                document.getElementById('btn-cancelar').addEventListener('click', () => this.mostrarPantallaPrincipal());
+                
+                // Formulario
+                document.getElementById('form-animal').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.guardarFormulario();
+                });
+                
+                // Búsqueda
+                document.getElementById('btn-buscar').addEventListener('click', () => this.buscar());
+                document.getElementById('buscador').addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') this.buscar();
+                });
+            }
+            
+            mostrarPantallaPrincipal() {
+                document.getElementById('pantalla-principal').classList.remove('hide');
+                document.getElementById('formulario-animal').classList.add('hide');
+                document.getElementById('pantalla-estadisticas').classList.add('hide');
+            }
+            
+            mostrarFormulario(animal = null) {
+                document.getElementById('pantalla-principal').classList.add('hide');
+                document.getElementById('formulario-animal').classList.remove('hide');
+                document.getElementById('pantalla-estadisticas').classList.add('hide');
+                
+                const formulario = document.getElementById('form-animal');
+                formulario.reset();
+                
+                if (animal) {
+                    // Modo edición
+                    document.getElementById('form-titulo').textContent = 'Editar Animal';
+                    document.getElementById('form-id-oculto').value = animal.id;
+                    document.getElementById('form-id').value = animal.id;
+                    document.getElementById('form-id').disabled = true;
+                    document.getElementById('form-raza').value = animal.raza;
+                    document.getElementById('form-fecha').value = animal.fechaNacimiento;
+                    document.getElementById('form-peso').value = animal.peso;
+                    document.getElementById('form-produccion').value = animal.produccion;
+                } else {
+                    // Modo creación
+                    document.getElementById('form-titulo').textContent = 'Añadir Nuevo Animal';
+                    document.getElementById('form-id-oculto').value = '';
+                    document.getElementById('form-id').disabled = false;
+                }
+            }
+            
+            mostrarEstadisticas() {
+                document.getElementById('pantalla-principal').classList.add('hide');
+                document.getElementById('formulario-animal').classList.add('hide');
+                document.getElementById('pantalla-estadisticas').classList.remove('hide');
+                
+                const stats = this.calcularEstadisticas();
+                
+                document.getElementById('stats-total').textContent = stats.total;
+                document.getElementById('stats-peso').textContent = `${stats.promedioPeso} kg`;
+                document.getElementById('stats-produccion').textContent = `${stats.produccionTotal} L/día`;
+            }
+            
+            actualizarTabla(animalesMostrados = null) {
+                const tbody = document.getElementById('tabla-animales');
+                const noAnimales = document.getElementById('no-animales');
+                
+                const animales = animalesMostrados || this.animales;
+                
+                tbody.innerHTML = '';
+                
+                if (animales.length === 0) {
+                    noAnimales.classList.remove('hidden');
+                } else {
+                    noAnimales.classList.add('hidden');
+                    
+                    animales.forEach(animal => {
+                        const fila = document.createElement('tr');
+                        
+                        fila.innerHTML = `
+                            <td class="py-2 px-4 border-b">${animal.id}</td>
+                            <td class="py-2 px-4 border-b">${animal.raza}</td>
+                            <td class="py-2 px-4 border-b">${this.formatearFecha(animal.fechaNacimiento)}</td>
+                            <td class="py-2 px-4 border-b">${animal.peso} kg</td>
+                            <td class="py-2 px-4 border-b">${animal.produccion} L/día</td>
+                            <td class="py-2 px-4 border-b">
+                                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1 hover:bg-blue-600 transition btn-editar">
+                                    Editar
+                                </button>
+                                <button class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition btn-eliminar">
+                                    Eliminar
+                                </button>
+                            </td>
+                        `;
+                        
+                        tbody.appendChild(fila);
+                        
+                        // Añadir eventos a los botones
+                        fila.querySelector('.btn-editar').addEventListener('click', () => {
+                            this.mostrarFormulario(animal);
+                        });
+                        
+                        fila.querySelector('.btn-eliminar').addEventListener('click', () => {
+                            if (confirm(`¿Estás seguro de eliminar el animal con ID: ${animal.id}?`)) {
+                                this.eliminarAnimal(animal.id);
+                                this.actualizarTabla();
+                            }
+                        });
+                    });
+                }
+            }
+            
+            guardarFormulario() {
+                const idOculto = document.getElementById('form-id-oculto').value;
+                const id = document.getElementById('form-id').value;
+                const raza = document.getElementById('form-raza').value;
+                const fechaNacimiento = document.getElementById('form-fecha').value;
+                const peso = document.getElementById('form-peso').value;
+                const produccion = document.getElementById('form-produccion').value;
+                
+                const animal = {
+                    id,
+                    raza,
+                    fechaNacimiento,
+                    peso,
+                    produccion
+                };
+                
+                let resultado;
+                
+                if (idOculto) {
+                    // Modo edición
+                    resultado = this.actualizarAnimal(animal);
+                } else {
+                    // Modo creación
+                    resultado = this.agregarAnimal(animal);
+                }
+                
+                if (resultado) {
+                    this.mostrarPantallaPrincipal();
+                    this.actualizarTabla();
+                }
+            }
+            
+            buscar() {
+                const termino = document.getElementById('buscador').value.trim();
+                const resultados = this.buscarAnimales(termino);
+                this.actualizarTabla(resultados);
+            }
+            
+            formatearFecha(fecha) {
+                const f = new Date(fecha);
+                return f.toLocaleDateString();
+            }
+        }
+        
+        // Inicializar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new GestionGanadera();
+        });
+    </script>
+</body>
+</html>
